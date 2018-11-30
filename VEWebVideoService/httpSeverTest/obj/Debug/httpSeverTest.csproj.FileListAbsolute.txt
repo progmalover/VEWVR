@@ -1,0 +1,10 @@
+E:\workspace\VEWebVideoService\httpSeverTest\bin\Debug\httpSeverTest.exe.config
+E:\workspace\VEWebVideoService\httpSeverTest\bin\Debug\httpSeverTest.exe
+E:\workspace\VEWebVideoService\httpSeverTest\bin\Debug\httpSeverTest.pdb
+E:\workspace\VEWebVideoService\httpSeverTest\obj\Debug\httpSeverTest.csprojAssemblyReference.cache
+E:\workspace\VEWebVideoService\httpSeverTest\obj\Debug\httpSeverTest.Form1.resources
+E:\workspace\VEWebVideoService\httpSeverTest\obj\Debug\httpSeverTest.Properties.Resources.resources
+E:\workspace\VEWebVideoService\httpSeverTest\obj\Debug\httpSeverTest.csproj.GenerateResource.cache
+E:\workspace\VEWebVideoService\httpSeverTest\obj\Debug\httpSeverTest.csproj.CoreCompileInputs.cache
+E:\workspace\VEWebVideoService\httpSeverTest\obj\Debug\httpSeverTest.exe
+E:\workspace\VEWebVideoService\httpSeverTest\obj\Debug\httpSeverTest.pdb

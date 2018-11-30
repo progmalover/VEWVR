@@ -1,0 +1,7 @@
+03:48:08: Error: Exception: HttpListenerException
+               Message: 在前缀“http://localhost:8233/”上侦听失败，因为它与计算机上的现有注册冲突。
+               Source: System
+               StackTrace:    在 System.Net.HttpListener.AddAllPrefixes()
+   在 System.Net.HttpListener.Start()
+   在 VEWebVideoService.HttpServer.Start(String strUrl) 位置 E:\workspace\web-video-redirect\VEWebVideoService\VEWebVideoService\HttpServer.cs:行号 213
+

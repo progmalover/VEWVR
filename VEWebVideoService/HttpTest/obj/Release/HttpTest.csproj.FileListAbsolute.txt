@@ -1,0 +1,7 @@
+E:\workspace\web-video-redirect\VEWebVideoService\HttpTest\bin\Release\HttpTest.exe.config
+E:\workspace\web-video-redirect\VEWebVideoService\HttpTest\bin\Release\HttpTest.exe
+E:\workspace\web-video-redirect\VEWebVideoService\HttpTest\bin\Release\HttpTest.pdb
+E:\workspace\web-video-redirect\VEWebVideoService\HttpTest\obj\Release\HttpTest.csproj.CoreCompileInputs.cache
+E:\workspace\web-video-redirect\VEWebVideoService\HttpTest\obj\Release\HttpTest.exe
+E:\workspace\web-video-redirect\VEWebVideoService\HttpTest\obj\Release\HttpTest.pdb
+E:\workspace\web-video-redirect\VEWebVideoService\HttpTest\obj\Release\HttpTest.csprojAssemblyReference.cache

@@ -1,0 +1,7 @@
+E:\workspace\web-video-redirect\VEWebVideoService\TargetServiceTest\bin\Release\TargetServiceTest.exe.config
+E:\workspace\web-video-redirect\VEWebVideoService\TargetServiceTest\bin\Release\TargetServiceTest.exe
+E:\workspace\web-video-redirect\VEWebVideoService\TargetServiceTest\bin\Release\TargetServiceTest.pdb
+E:\workspace\web-video-redirect\VEWebVideoService\TargetServiceTest\obj\Release\TargetServiceTest.csproj.CoreCompileInputs.cache
+E:\workspace\web-video-redirect\VEWebVideoService\TargetServiceTest\obj\Release\TargetServiceTest.exe
+E:\workspace\web-video-redirect\VEWebVideoService\TargetServiceTest\obj\Release\TargetServiceTest.pdb
+E:\workspace\web-video-redirect\VEWebVideoService\TargetServiceTest\obj\Release\TargetServiceTest.csprojAssemblyReference.cache

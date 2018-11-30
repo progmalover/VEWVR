@@ -1,0 +1,7 @@
+E:\workspace\web-video-redirect\VEWebVideoService\VEWebVideoService\bin\Release\VEWVRService.exe.config
+E:\workspace\web-video-redirect\VEWebVideoService\VEWebVideoService\bin\Release\VEWVRService.exe
+E:\workspace\web-video-redirect\VEWebVideoService\VEWebVideoService\bin\Release\VEWVRService.pdb
+E:\workspace\web-video-redirect\VEWebVideoService\VEWebVideoService\obj\Release\VEWebVideoRedirectService.csproj.CoreCompileInputs.cache
+E:\workspace\web-video-redirect\VEWebVideoService\VEWebVideoService\obj\Release\VEWVRService.exe
+E:\workspace\web-video-redirect\VEWebVideoService\VEWebVideoService\obj\Release\VEWVRService.pdb
+E:\workspace\web-video-redirect\VEWebVideoService\VEWebVideoService\obj\Release\VEWebVideoRedirectService.csprojAssemblyReference.cache
