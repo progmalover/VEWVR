@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
  
@@ -17,7 +18,6 @@ namespace TerminalWebVideoService
         }
         public void Start()
         {
-            //InvokeBrowser.CallWebBrowser("http://v.youku.com/v_show/id_XMzg1OTUxMTY5Mg==.html?spm=a2h0j.11185381.mdlikeshow.1~3!5~5~5~A");
             if (null == _mainThread)
                 _mainThread = new Thread(DoLoop);
             _mainThread.Start();
@@ -31,7 +31,12 @@ namespace TerminalWebVideoService
             {
                 try
                 {
-                    _listener = new TcpListener(1886);
+                    if (_listener != null)
+                    {
+                        _listener.Stop();
+                        _listener = null;
+                    }
+                    _listener = new TcpListener(IPAddress.Parse("0.0.0.0"),44223);
                     _listener.Start();
                     break;
                 } catch (Exception e)
@@ -48,6 +53,7 @@ namespace TerminalWebVideoService
                 try
                 {
                     client = _listener.AcceptTcpClient();
+                    
                     if (!_runing)
                         continue;
                 }
@@ -66,13 +72,13 @@ namespace TerminalWebVideoService
                     {
                         try
                         {
-                            if(sr == null)
-                                sr = new StreamReader(_client.GetStream());
+                           
+                            sr = new StreamReader(_client.GetStream());
                            
                             while ((line = sr.ReadLine()) != null)
                             {
                                 Log.Logger.Instance.WriteLog(line);
-                                if (line.StartsWith("http"))
+                                if (line.Trim().StartsWith("http"))
                                 {
                                     try
                                     {
@@ -81,9 +87,12 @@ namespace TerminalWebVideoService
                                     catch (Exception e)
                                     {
                                         Log.Logger.Instance.WriteLog(e.Message);
+                                        break;
                                     }
                                 }
                             }
+                            sr.Close();
+                            sr = null;
 
                         }
                         catch (Exception e)

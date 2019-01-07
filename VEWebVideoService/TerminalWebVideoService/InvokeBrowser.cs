@@ -25,10 +25,6 @@ namespace TerminalWebVideoService
                 //VMUIFrame
                 IntPtr topWnd = Win32.FindWindowEx(IntPtr.Zero, IntPtr.Zero, "gdkWindowToplevel", null);
                 IntPtr viewWnd = Win32.FindWindowEx(topWnd, IntPtr.Zero, "gdkWindowChild", null);
-
-                //IntPtr topWnd = Win32.FindWindowEx(IntPtr.Zero, IntPtr.Zero, "VMUIFrame", null);
-                //IntPtr viewWnd = Win32.FindWindowEx(topWnd, IntPtr.Zero, "VMUIView", null);// 
-                //viewWnd = Win32.FindWindowEx(viewWnd, IntPtr.Zero, "AtlAxWin90", null);
                
                 if (viewWnd != IntPtr.Zero)
                 {
@@ -42,13 +38,29 @@ namespace TerminalWebVideoService
             return hBrowserWnd;
         }
 
+        //this code maybe is cause of clr.dll crash, i tried best to fix it,but failed..so
+        //don't call this code till i know how to fix issue.
+        //but it's always ok in my development pc,even run thousands of times....
+        /*
+         *    故障模块名称:	clr.dll
+              故障模块版本:	4.7.2650.0
+              故障模块时间戳:	5ab1c520
+              异常代码:	c0000005
+              异常偏移:	00000000001c50b9
+              OS 版本:	6.1.7601.2.1.0.256.1
+         */
+         //以上问题已经修正，去掉不安全的win32 api调用。
+        //static object g_calllocker = new object();
         public static bool CreateFloatControlBar(string exePath,IntPtr hProcess, IntPtr hOwner ,IntPtr hBrowserWnd)
         {
-            // _bar.Show();
             new Thread(() => {
-                using (FloatCtrlBar _bar = new FloatCtrlBar(hOwner, hBrowserWnd, hProcess, exePath))
+                //lock (g_calllocker)
                 {
-                    Application.Run((Form)_bar);
+                    using (FloatCtrlBar _bar = new FloatCtrlBar(hOwner, hBrowserWnd, hProcess, exePath))
+                    {
+                        try { Application.Run((Form)_bar); }
+                        catch { }
+                    }
                 }
             }
             ).Start();
@@ -65,7 +77,7 @@ namespace TerminalWebVideoService
                 //如果是最小化状态
                 if(Win32.IsWindow(g_CurBrowserWnd))
                 {
-                    Win32.ShowWindow(g_CurBrowserWnd, 2);
+                    Win32.ShowWindow(g_CurBrowserWnd, 3);
                     return true;
                 }
                 g_CurBrowserWnd = IntPtr.Zero;
@@ -108,7 +120,11 @@ namespace TerminalWebVideoService
                 {
                     if (item.Path != null && item.Path.CompareTo(path) == 0)
                     {
-                        item.Process.Kill();
+                        try
+                        {
+                            item.Process.Kill();
+                        }
+                        catch { }
                         bKill = true;
                     }
                 }
@@ -168,7 +184,7 @@ namespace TerminalWebVideoService
             hProcess = IntPtr.Zero;
 
             Win32.STARTUPINFO sInfo = new Win32.STARTUPINFO();
-            sInfo.wShowWindow = 2;
+            sInfo.wShowWindow = 0;
             Win32.PROCESS_INFORMATION pInfo = new Win32.PROCESS_INFORMATION();
             bool bSucc = Win32.CreateProcess(null,
                 new StringBuilder(strBrowserPath + " " + strUrl), null, null, true, 0, null, null, ref sInfo, ref pInfo);
@@ -180,23 +196,51 @@ namespace TerminalWebVideoService
             uint ret = Win32.WaitForSingleObject(pInfo.hProcess, 1);
             if (ret != 0)
             {
-
+                //wait  3 seconds for the webbrowser window complete.
+                //Thread.Sleep(2000);
                 hProcess = pInfo.hProcess;
                 //尝试重抓5次
                 int tryTimes = 5;
-                while( --tryTimes >=0)
+                while (--tryTimes >= 0)
                 {
                     hWndBrowser = GetThreadMainWindow(pInfo.dwThreadId);
                     if (hWndBrowser != IntPtr.Zero)
                         break;
+                    Thread.Sleep(500);
+                }
+                //等待子窗口附加成功
+                int waitCount = 0;
+                while(true)
+                {
+                    if (!Win32.IsWindow(hWndBrowser))
+                    {
+                        return IntPtr.Zero;
+                    }
+
+                    //main window is ok
+                    IntPtr hwnd = Win32.GetWindow(hWndBrowser, 5);
+                    if(hwnd != IntPtr.Zero)
+                    {
+                        bool bIsWinRun = Win32.IsWindow(hwnd);
+                        if (bIsWinRun)
+                            break;
+                        else
+                            return IntPtr.Zero;
+                    }
+                    //防止测试中发现的“野窗口”
                     Thread.Sleep(200);
+                    waitCount++;
+                    if (waitCount >= 15)
+                        return IntPtr.Zero;
                 }
 
                 return hWndBrowser;
             }
             else
-                throw new Exception("未能成功发现浏览器新的主窗口实例！");
-            return IntPtr.Zero; 
+            {
+               Log.Logger.Instance.WriteLog("未能成功发现浏览器新的主窗口实例！");
+            }
+            return IntPtr.Zero;
         }
 
         private static IntPtr DeeplyScanMainWnd(IntPtr hwnd)
@@ -215,6 +259,23 @@ namespace TerminalWebVideoService
                return DeeplyScanMainWnd(pWnd);
             return IntPtr.Zero;
         }
+
+        /**
+         * 浏览器主窗口主窗口已经重合成功
+         */
+        private static bool MainWebBrowserIsRead(IntPtr hWeb)
+        {
+            
+            long style = Win32.GetWindowLong(hWeb, -16).ToInt64();
+            if ((style & 0x00020000L) == 0x00020000L || (style & 0x00010000L) == 0x00010000L)
+            {
+                IntPtr hwnd = Win32.GetWindow(hWeb, 5);
+                if (hwnd != IntPtr.Zero && Win32.IsWindow(hwnd))
+                    return true;
+            }
+            return false;
+        }
+         
         /*
         * 获取浏览器实例窗口的主窗口
         */

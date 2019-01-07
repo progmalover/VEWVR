@@ -151,13 +151,30 @@ namespace TerminalWebVideoService
         [DllImport("user32.dll", EntryPoint = "SetWindowPos")]
         static public extern int SetWindowPos(int hwnd, int hWndInsertAfter, int x, int y, int cx, int cy, int wFlags);
 
+        [DllImport("user32.dll", EntryPoint = "GetWindow")]
+        static public extern IntPtr GetWindow(IntPtr hwnd,uint uCmd);
         public struct Rect
         {
             public int Left;
             public int Top;
             public int Right;
             public int Bottom;
+            public Rect(int left,int top, int right ,int bottom)
+            {
+                Left = left;
+                Top = top;
+                Right = right;
+                Bottom = bottom;
+            }
              
+            public bool IsEmpty()
+            {
+                bool bEmpty = (Left == Right);
+                if (bEmpty) return bEmpty;
+                bEmpty = (Top == Bottom);
+                if (bEmpty) return bEmpty;
+                return false;
+            }
         }
 
         [DllImport("User32.dll")]
@@ -192,6 +209,27 @@ namespace TerminalWebVideoService
 
         [DllImport("kernel32.dll")]
         public static extern int GetCurrentThreadId();
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct POINT
+        {
+            public int X;
+            public int Y;
+
+            public POINT(int x, int y)
+            {
+                this.X = x;
+                this.Y = y;
+            }
+
+            public override string ToString()
+            {
+                return ("X:" + X + ", Y:" + Y);
+            }
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern bool GetCursorPos(out POINT pt);
 
     }
 }

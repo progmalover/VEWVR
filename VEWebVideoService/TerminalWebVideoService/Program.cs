@@ -64,7 +64,7 @@ namespace TerminalWebVideoService
                 Log.Logger.Instance.WriteLog("服务实例已经存在！");
                 return;
             }
-			
+          
 			try{
 				if(isFirstRun())
 				{
@@ -75,9 +75,22 @@ namespace TerminalWebVideoService
 				Log.Logger.Instance.WriteException(e);
 			}
 
+#if DEBUG
+            while(true)
+            {
+                InvokeBrowser.CallWebBrowser("https://www.iqiyi.com");
+                Thread.Sleep(5000);
+                InvokeBrowser.CallWebBrowser("https://www.youku.com");
+                Thread.Sleep(5000);
+            }
+#else
             Service service = new Service();
             service.Start();
             service.Join();
+#endif
+
         }
     }
 }
+
+

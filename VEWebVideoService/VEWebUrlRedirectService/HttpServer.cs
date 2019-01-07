@@ -1,94 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
+using System.Net.Security;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+/*
+* Notice
+* This code is designed for vesystem,all right reserved. --maxwell.z
+* 2018.12
+*/
 
 namespace VEWebUrlRedirectService
 {
-    public class LocalResourceManager
-    {
-        string SourceDirPath = "";
-        public LocalResourceManager()
-        {
-            SourceDirPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            if (!SourceDirPath.EndsWith("/") && !SourceDirPath.EndsWith("\\"))
-            {
-                SourceDirPath += "\\";// for dos path
-            }
-        }
-        //转换unicode路径
-        string  ConvertPath(string rawURL)
-        {
-            if (rawURL.IndexOf("%") < 0)
-                return rawURL;
-
-            return Uri.UnescapeDataString(rawURL);
-        }
-
-        protected string PathMap(string rawURL)
-        {
-            string unescUrl = ConvertPath(rawURL);
-            
-            string beginToken = unescUrl[0].ToString();
-            string strFullPath = SourceDirPath;
-            //map to root file or insert source dir
-            if (unescUrl == beginToken)
-                strFullPath += "Source" + beginToken + "test.html";
-            else
-                strFullPath +="Source" + unescUrl;
-
-            return strFullPath;
-        }
-
-        public FileStream GetFStream(string rawUrl ,ref bool bBlockFile )
-        {
-            string []raw_exts = new string[]{ ".gif", ".bmp", ".png", ".jpg" };
-            bBlockFile = false;
-            string localPath = PathMap(rawUrl);
-            try
-            {
-                if (File.Exists(localPath))
-                {
-                    string lcPath = localPath.ToLower();
-                    foreach( var ext in raw_exts)
-                    {
-                        if (lcPath.Contains(ext))
-                        {
-                            bBlockFile = true;
-                            break;
-                        }
-                    }
-                  
-                    return File.Open(localPath, FileMode.Open, FileAccess.Read);
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Logger.Instance.WriteException(e);
-            }
-            return null;
-        }
-    }
-
     public class HttpServer
     {
         protected HttpListener Listener;
-        protected AutoResetEvent ExitEvent;
+   
         protected LocalResourceManager LocalResource;
+       // protected TcpDataSender DataSender;
         public HttpServer()
         {
+           // DataSender = TcpDataSender.GetInst();
             Listener = new HttpListener();
-            ExitEvent = new AutoResetEvent(false);
             LocalResource = new LocalResourceManager();
         }
 
         //start httpserv
-        public void Start(string strUrl)
+        public void Start(string strPrefix)
         {
             try
             {
@@ -96,7 +37,7 @@ namespace VEWebUrlRedirectService
                     Listener = new HttpListener();
                 if (!Listener.IsListening)
                 {
-                    Listener.Prefixes.Add(strUrl);
+                    Listener.Prefixes.Add(strPrefix);
                     Listener.Start();
                     IAsyncResult result = Listener.BeginGetContext(
                     new AsyncCallback(WebRequestCallback), this.Listener);
@@ -109,7 +50,6 @@ namespace VEWebUrlRedirectService
             }
         }
 
-        //stop httpserv
         public void Stop()
         {
             if (Listener != null)
@@ -118,15 +58,9 @@ namespace VEWebUrlRedirectService
                 Listener.Close();
                 Listener = null;
             }
-            ExitEvent.Reset();
+            
         }
-
-        public void Join()
-        {
-            //DataSender.Join();
-            ExitEvent.WaitOne();
-        }
-
+       
         private void WebRequestCallback(IAsyncResult result)
         {
             if (Listener == null)
@@ -136,20 +70,48 @@ namespace VEWebUrlRedirectService
             Listener.BeginGetContext(new AsyncCallback(WebRequestCallback), this.Listener);
             ProcessRequest(Context);
         }
-//"/test_files/bootstrap.min.js.%C3%A4%C2%B8%C2%8B%C3%A8%C2%BD%C2%BD"
+
+        virtual protected BinaryReader CreateBinaryStreamReader(Stream rawStream)
+        {
+            return new BinaryReader(rawStream);
+        }
+
+        virtual protected StreamReader CreateStringStreamReader(Stream rawStream)
+        {
+            return new StreamReader(rawStream);
+        }
+
+        virtual protected BinaryWriter CreateBinaryStreamWriter(Stream rawStream)
+        {
+            return new BinaryWriter(rawStream);
+        }
+
+        virtual protected StreamWriter CreateStringStreamWriter(Stream rawStream)
+        {
+            return new StreamWriter(rawStream);
+        }
+
         private void OnResponse(System.Net.HttpListenerResponse response ,System.Net.HttpListenerRequest request)
         {
-            String reqStrURlRaw = request.RawUrl;
-
+            String reqStrURlRaw = request.Url.ToString();
+            
+            if (!LocalResource.LocalFileExist(reqStrURlRaw) && request.UrlReferrer == null)
+            {
+                reqStrURlRaw = "/";
+            } else
+                reqStrURlRaw = LocalResource.UrlToLocalRef(reqStrURlRaw, request.UrlReferrer.ToString());
+            if (!LocalResource.LocalFileExist(reqStrURlRaw))
+                reqStrURlRaw = "/";
             bool bBlockFile = false;
             FileStream fr = LocalResource.GetFStream(reqStrURlRaw,ref bBlockFile);
             if (null == fr)
             {
+                request.InputStream.Close();
                 return;
             }
 
-            BinaryWriter bw = new BinaryWriter(response.OutputStream);
-            StreamWriter sw = new StreamWriter(response.OutputStream);
+            BinaryWriter bw = CreateBinaryStreamWriter(response.OutputStream);
+            StreamWriter sw = CreateStringStreamWriter(response.OutputStream);
             try
             {
                 byte[] datas = new byte[4096];
@@ -178,31 +140,28 @@ namespace VEWebUrlRedirectService
                     }
                 }
 
+                sw.Flush();
+                bw.Flush();
+                bw.Close();
+                sw.Close();
                 datas = null;
             }
             catch{ }
 
-            bw.Close();
-            sw.Close();
+            bw = null;
+            sw = null;
             fr.Close();
+            fr = null;
         }
-
+        
         //这里进行转发
-        private void ProcessRequest(System.Net.HttpListenerContext Context)
+        protected virtual void ProcessRequest(System.Net.HttpListenerContext Context)
         {
             Stream request = Context.Request.InputStream;
-
-            string input = null;
-            using (StreamReader sr = new StreamReader(request))
-            {
-                input = sr.ReadToEnd();
-            }
-
-            System.Diagnostics.Debug.Write(input);
-
             OnResponse(Context.Response,Context.Request);
-           
         }
 
     }
+
+
 }

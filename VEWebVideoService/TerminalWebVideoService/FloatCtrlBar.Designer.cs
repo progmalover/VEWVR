@@ -78,7 +78,6 @@
             // 
             // FloatCtrlBar
             // 
-             
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(131, 45);
@@ -98,9 +97,9 @@
             this.TopMost = true;
             this.Load += new System.EventHandler(this.FloatCtrlBar_Load);
             this.Shown += new System.EventHandler(this.FloatCtrlBar_OnShown);
-           
             this.MouseEnter += new System.EventHandler(this.FloatCtrlBar_MouseEnter);
             this.MouseLeave += new System.EventHandler(this.FloatCtrlBar_MouseLeave);
+            this.Move += new System.EventHandler(this.FloatCtrlBar_Move);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 

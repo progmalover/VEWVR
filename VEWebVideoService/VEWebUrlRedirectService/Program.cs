@@ -1,8 +1,13 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
-
+/*
+* Notice
+* This code is designed for vesystem,all right reserved. --maxwell.z
+* 2018.12
+*/
 namespace VEWebUrlRedirectService
 {
     class Program
@@ -78,14 +83,22 @@ namespace VEWebUrlRedirectService
             }
 
             //修改window dns服务,转向网站访问
-               
+            DnsController dCtrl = new DnsController();
+            dCtrl.LoadDnsToSystem();
 
-            //启动http服务，绑定 80端口 
+    
+            //url数据发送器，发送数据到终端
+            TcpDataSender.GetInst().Start();
+
             HttpServer httpServer = new HttpServer();
-
             httpServer.Start("http://127.0.0.1:80/");
-            httpServer.Join();
-            httpServer.Stop();
+
+            HttpWebSocketServer webSokectServer = new HttpWebSocketServer();
+            webSokectServer.Start("http://127.0.0.1:8233/");
+
+            HttpsServer httpsServer = new HttpsServer(443);
+            httpsServer.Start();
+            ExitSignal.Join();
         }
     }
 }
